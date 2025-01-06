@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deck Viewer</title>
+    <title>Vibes Deck Viewer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,53 +11,55 @@
             text-align: center;
             background-color: #f2f2f2;
         }
-
         h1 {
             margin-bottom: 10px;
         }
-
         .input-section {
             margin-bottom: 20px;
         }
-
         input[type="text"] {
             width: 80%;
             padding: 10px;
             font-size: 16px;
             margin-bottom: 10px;
         }
-
         button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
         }
-
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 3px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1px;
             margin: 0 auto;
             max-width: 900px;
+            position: relative;
         }
-
         .card {
             text-align: center;
+            position: relative;
         }
-
         .card img {
             width: 100%;
-            max-width: 120px;
+            max-width: 150px;
             border: 1px solid #ddd;
             border-radius: 4px;
             background-color: #f9f9f9;
+            transition: transform 0.3s ease, z-index 0.3s ease;
+            z-index: 1;
         }
-
+        .card:hover img {
+            transform: scale(2.1);
+            z-index: 9999;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
         .card p {
             margin-top: 2px;
             font-size: 14px;
         }
-    </style>
+    </style>    
 </head>
 <body>
     <h1>Vibes Deck Viewer</h1>
