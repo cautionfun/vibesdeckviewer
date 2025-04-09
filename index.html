@@ -66,16 +66,32 @@
     <div class="input-section">
         <label for="deckInput">Paste your deck code:</label><br>
         <input type="text" id="deckInput" placeholder='{"deckName":"DeckName","counts":{"CardName":3}}'><br>
-        <button onclick="renderDeck()">Submit</button>
+        <button onclick="renderDeck(document.getElementById('deckInput').value)">Submit</button> <button onclick="clearDeck()">Clear</button>
     </div>
     <h2 id="deckName"></h2>
     <div class="grid" id="cardGrid"></div>
 
     <script>
         const API_BASE_URL = "https://ocg-card-catalog.s3.us-west-2.amazonaws.com/Spoiler_Previews/";
+        const deckInput = document.getElementById("deckInput");
 
-        function renderDeck() {
-            const deckInput = document.getElementById("deckInput").value;
+        deckInput.addEventListener("keypress", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                renderDeck(deckInput.value);
+            }
+        });
+
+        const clearDeck = () => {
+            const deckInput = document.getElementById("deckInput");
+            const deckGrid = document.getElementById("cardGrid");
+            const deckNameElement = document.getElementById("deckName");
+            deckInput.value = "";
+            deckGrid.innerHTML = "";
+            deckNameElement.textContent = "";
+        }
+
+        const renderDeck = (deckInput) => {
             const deckGrid = document.getElementById("cardGrid");
             const deckNameElement = document.getElementById("deckName");
             deckGrid.innerHTML = "";
@@ -104,6 +120,14 @@
             } catch (error) {
                 alert("Invalid JSON. Please check your input and try again.");
             }
+        }
+
+        const params = new URLSearchParams(window.location.search);
+
+        if (params.has('deck')) {
+            const deckInput = document.getElementById("deckInput");
+            deckInput.value = params.get('deck');
+            renderDeck(params.get('deck'));
         }
     </script>
 </body>
