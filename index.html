@@ -5,76 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vibes Deck Viewer</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            text-align: center;
-            background-color: #f2f2f2;
-        }
-        h1 {
-            margin-bottom: 10px;
-        }
-        .input-section {
-            margin-bottom: 20px;
-        }
-        input[type="text"] {
-            width: 80%;
-            padding: 10px;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 1px;
-            margin: 0 auto;
-            max-width: 900px;
-            position: relative;
-        }
-        .card {
-            text-align: center;
-            position: relative;
-        }
-        .card img {
-            width: 100%;
-            max-width: 150px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-            transition: transform 0.3s ease, z-index 0.3s ease;
-            z-index: 1;
-        }
-        .card:hover img {
-            transform: scale(2.1);
-            z-index: 9999;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            position: relative;
-        }
-        .card p {
-            margin-top: 2px;
-            font-size: 14px;
-        }
-    </style>    
+        body { font-family: Arial, sans-serif; margin: 20px; text-align: center; background-color: #f2f2f2; }
+        h1 { margin-bottom: 10px; }
+        .input-section { margin-bottom: 20px; }
+        input[type="text"] { width: 80%; padding: 10px; font-size: 16px; margin-bottom: 10px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; margin: 0 auto; max-width: 900px; position: relative; }
+        .card { text-align: center; position: relative; }
+        .card img { width: 100%; max-width: 150px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9; transition: transform 0.3s ease, z-index 0.3s ease; z-index: 1; }
+        .card:hover img { transform: scale(2.1); z-index: 9999; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); position: relative; }
+        .card p { margin-top: 2px; font-size: 14px; }
+        #charts { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 30px; gap: 30px; }
+        .chart-container { width: 300px; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <h1>Vibes Deck Viewer</h1>
     <div class="input-section">
         <label for="deckInput">Paste your deck code:</label><br>
         <input type="text" id="deckInput" placeholder='{"deckName":"DeckName","counts":{"CardName":3}}'><br>
-        <button onclick="renderDeck(document.getElementById('deckInput').value)">Submit</button> <button onclick="clearDeck()">Clear</button>
+        <button onclick="renderDeck(document.getElementById('deckInput').value)">Submit</button>
+        <button onclick="clearDeck()">Clear</button>
     </div>
     <h2 id="deckName"></h2>
     <div class="grid" id="cardGrid"></div>
 
+    <div id="charts">
+        <div class="chart-container"><canvas id="typeChart"></canvas></div>
+        <div class="chart-container"><canvas id="colorChart"></canvas></div>
+        <div class="chart-container"><canvas id="costChart"></canvas></div>
+    </div>
+
     <script>
         const API_BASE_URL = "https://ocg-card-catalog.s3.us-west-2.amazonaws.com/Spoiler_Previews/";
-        const deckInput = document.getElementById("deckInput");
+        let allCards = [];
+        // Load card reference data
+        fetch('vibes_cards.json')
+            .then(res => res.json())
+            .then(data => allCards = data)
+            .catch(err => console.error('Failed to load card data:', err));
 
+        const deckInput = document.getElementById("deckInput");
         deckInput.addEventListener("keypress", (event) => {
             if (event.key === "Enter") {
                 event.preventDefault();
@@ -82,50 +54,88 @@
             }
         });
 
-        const clearDeck = () => {
-            const deckInput = document.getElementById("deckInput");
-            const deckGrid = document.getElementById("cardGrid");
-            const deckNameElement = document.getElementById("deckName");
+        function clearDeck() {
             deckInput.value = "";
-            deckGrid.innerHTML = "";
-            deckNameElement.textContent = "";
+            document.getElementById('cardGrid').innerHTML = "";
+            document.getElementById('deckName').textContent = "";
+            // Clear charts
+            [typeChart, colorChart, costChart].forEach(chart => chart && chart.destroy && chart.destroy());
         }
 
-        const renderDeck = (deckInput) => {
+        function renderDeck(input) {
             const deckGrid = document.getElementById("cardGrid");
-            const deckNameElement = document.getElementById("deckName");
+            const deckNameEl = document.getElementById("deckName");
             deckGrid.innerHTML = "";
-            deckNameElement.textContent = "";
-
+            deckNameEl.textContent = "";
             try {
-                const deckData = JSON.parse(deckInput);
+                const deckData = JSON.parse(input);
                 const { deckName, counts } = deckData;
-                deckNameElement.textContent = deckName;
-
-                for (const [cardName, count] of Object.entries(counts)) {
-                    const cardDiv = document.createElement("div");
-                    cardDiv.classList.add("card");
-
-                    const cardImg = document.createElement("img");
-                    cardImg.src = `${API_BASE_URL}${cardName}.png`;
-                    cardImg.alt = cardName;
-
-                    const cardCount = document.createElement("p");
-                    cardCount.textContent = `x${count}`;
-
-                    cardDiv.appendChild(cardImg);
-                    cardDiv.appendChild(cardCount);
-                    deckGrid.appendChild(cardDiv);
+                deckNameEl.textContent = deckName;
+                // Render cards
+                for (const [cardId, count] of Object.entries(counts)) {
+                    const cardDiv = document.createElement('div'); cardDiv.className = 'card';
+                    const img = document.createElement('img');
+                    img.src = `${API_BASE_URL}${cardId}.png`;
+                    img.alt = cardId;
+                    const label = document.createElement('p'); label.textContent = `x${count}`;
+                    cardDiv.append(img, label);
+                    deckGrid.append(cardDiv);
                 }
-            } catch (error) {
-                alert("Invalid JSON. Please check your input and try again.");
+                // Render charts
+                renderCharts(counts);
+            } catch (e) {
+                alert('Invalid JSON. Please check your input and try again.');
             }
         }
 
-        const params = new URLSearchParams(window.location.search);
+        let typeChart, colorChart, costChart;
+        function renderCharts(counts) {
+            const typeCounts = {};
+            const colorCounts = {};
+            const costList = [];
+            // Aggregate data
+            for (const [cardId, qty] of Object.entries(counts)) {
+                const card = allCards.find(c => c.id === cardId);
+                if (!card) continue;
+                // Type
+                typeCounts[card.type] = (typeCounts[card.type] || 0) + qty;
+                // Color
+                colorCounts[card.color] = (colorCounts[card.color] || 0) + qty;
+                // Cost for Penguin/Relic
+                if ((card.type === 'Penguin' || card.type === 'Relic') && card.cost && card.cost.amount != null) {
+                    for (let i = 0; i < qty; i++) costList.push(card.cost.amount);
+                }
+            }
+            // Cost distribution
+            const costCounts = {};
+            costList.forEach(val => costCounts[val] = (costCounts[val] || 0) + 1);
+            const costLabels = Object.keys(costCounts).sort((a,b) => a - b);
+            const costData = costLabels.map(l => costCounts[l]);
 
+            // Destroy old charts
+            [typeChart, colorChart, costChart].forEach(c => c && c.destroy());
+
+            // Create charts
+            const ctxType = document.getElementById('typeChart').getContext('2d');
+            typeChart = new Chart(ctxType, {
+                type: 'bar',
+                data: { labels: Object.keys(typeCounts), datasets: [{ label: 'Count by Type', data: Object.values(typeCounts) }] }
+            });
+            const ctxColor = document.getElementById('colorChart').getContext('2d');
+            colorChart = new Chart(ctxColor, {
+                type: 'bar',
+                data: { labels: Object.keys(colorCounts), datasets: [{ label: 'Count by Color', data: Object.values(colorCounts) }] }
+            });
+            const ctxCost = document.getElementById('costChart').getContext('2d');
+            costChart = new Chart(ctxCost, {
+                type: 'bar',
+                data: { labels: costLabels, datasets: [{ label: 'Penguin/Relic Cost Distribution', data: costData }] }
+            });
+        }
+
+        // Support deck via URL
+        const params = new URLSearchParams(window.location.search);
         if (params.has('deck')) {
-            const deckInput = document.getElementById("deckInput");
             deckInput.value = params.get('deck');
             renderDeck(params.get('deck'));
         }
