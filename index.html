@@ -30,38 +30,37 @@
     </div>
     <h2 id="deckName"></h2>
     <div class="grid" id="cardGrid"></div>
-
     <div id="charts">
         <div class="chart-container"><canvas id="typeChart"></canvas></div>
         <div class="chart-container"><canvas id="colorChart"></canvas></div>
         <div class="chart-container"><canvas id="costChart"></canvas></div>
     </div>
-
+    
     <script>
         const API_BASE_URL = "https://ocg-card-catalog.s3.us-west-2.amazonaws.com/Spoiler_Previews/";
         let allCards = [];
-        // Load card reference data
-        fetch('vibes_cards.json')
-            .then(res => res.json())
-            .then(data => allCards = data)
-            .catch(err => console.error('Failed to load card data:', err));
 
+        const cardsReady = fetch('vibes_cards.json')
+            .then(res => res.json())
+            .then(data => { allCards = data; })
+            .catch(err => console.error('Failed to load card data:', err));
+    
         const deckInput = document.getElementById("deckInput");
-        deckInput.addEventListener("keypress", (event) => {
+        deckInput.addEventListener("keypress", async (event) => {
             if (event.key === "Enter") {
                 event.preventDefault();
+                await cardsReady;
                 renderDeck(deckInput.value);
             }
         });
-
+    
         function clearDeck() {
             deckInput.value = "";
             document.getElementById('cardGrid').innerHTML = "";
             document.getElementById('deckName').textContent = "";
-            // Clear charts
             [typeChart, colorChart, costChart].forEach(chart => chart && chart.destroy && chart.destroy());
         }
-
+    
         function renderDeck(input) {
             const deckGrid = document.getElementById("cardGrid");
             const deckNameEl = document.getElementById("deckName");
@@ -71,7 +70,6 @@
                 const deckData = JSON.parse(input);
                 const { deckName, counts } = deckData;
                 deckNameEl.textContent = deckName;
-                // Render cards
                 for (const [cardId, count] of Object.entries(counts)) {
                     const cardDiv = document.createElement('div'); cardDiv.className = 'card';
                     const img = document.createElement('img');
@@ -81,41 +79,32 @@
                     cardDiv.append(img, label);
                     deckGrid.append(cardDiv);
                 }
-                // Render charts
                 renderCharts(counts);
             } catch (e) {
                 alert('Invalid JSON. Please check your input and try again.');
             }
         }
-
+    
         let typeChart, colorChart, costChart;
         function renderCharts(counts) {
             const typeCounts = {};
             const colorCounts = {};
             const costList = [];
-            // Aggregate data
             for (const [cardId, qty] of Object.entries(counts)) {
                 const card = allCards.find(c => c.id === cardId);
                 if (!card) continue;
-                // Type
                 typeCounts[card.type] = (typeCounts[card.type] || 0) + qty;
-                // Color
                 colorCounts[card.color] = (colorCounts[card.color] || 0) + qty;
-                // Cost for Penguin/Relic
                 if ((card.type === 'Penguin' || card.type === 'Relic') && card.cost && card.cost.amount != null) {
                     for (let i = 0; i < qty; i++) costList.push(card.cost.amount);
                 }
             }
-            // Cost distribution
             const costCounts = {};
             costList.forEach(val => costCounts[val] = (costCounts[val] || 0) + 1);
             const costLabels = Object.keys(costCounts).sort((a,b) => a - b);
             const costData = costLabels.map(l => costCounts[l]);
-
-            // Destroy old charts
             [typeChart, colorChart, costChart].forEach(c => c && c.destroy());
 
-            // Create charts
             const ctxType = document.getElementById('typeChart').getContext('2d');
             typeChart = new Chart(ctxType, {
                 type: 'bar',
@@ -133,12 +122,15 @@
             });
         }
 
-        // Support deck via URL
-        const params = new URLSearchParams(window.location.search);
-        if (params.has('deck')) {
-            deckInput.value = params.get('deck');
-            renderDeck(params.get('deck'));
-        }
+        (async () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('deck')) {
+                const deckJson = params.get('deck');
+                deckInput.value = deckJson;
+                await cardsReady;
+                renderDeck(deckJson);
+            }
+        })();
     </script>
 </body>
 </html>
