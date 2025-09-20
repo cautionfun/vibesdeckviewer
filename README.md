@@ -8,4 +8,4 @@ Search page: https://cautionfun.github.io/vibesdeckviewer/search.html
 
 Share links to decklist by appending ?deck={deck_code_copied_from_client}
 example: 
-https://cautionfun.github.io/vibesdeckviewer/index.html?deck={"deckName":"Red Starter Deck","counts":{"ChubopolisUnleashed":1,"HaveanEncore":2,"ADropinAttention":3,"NotaRodAnymore":3,"TrustFall":3,"ContemplationPenguin":4,"BambooPenguin":4,"PeaceOutPenguin":4,"RedWizardPenguin":4,"RibbonDancingPenguin":4,"RunItBackPenguin":4,"ScreamingPenguin":4,"PutonaShow":4,"SunburnaPenguin":4,"UseWhoopeeCushion":4}}
+https://cautionfun.github.io/vibesdeckviewer/index.html?deck={%22deckName%22:%22Red%20Starter%20Deck%22,%20%22counts%22:{%20%22ChubopolisUnleashed%22:1,%20%22HaveanEncore%22:2,%20%22ADropinAttention%22:3,%20%22NotaRodAnymore%22:3,%20%22TrustFall%22:3,%20%22ContemplationPenguin%22:4,%20%22BambooPenguin%22:4,%20%22PeaceOutPenguin%22:4,%20%22RedWizardPenguin%22:4,%20%22RibbonDancingPenguin%22:4,%20%22RunItBackPenguin%22:4,%20%22ScreamingPenguin%22:4,%20%22PutonaShow%22:4,%20%22SunburnaPenguin%22:4,%20%22UseWhoopeeCushion%22:4%20}}
