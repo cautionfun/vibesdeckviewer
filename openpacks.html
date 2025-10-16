@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Vibes Pack Simulator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0e1116;
+      --fg: #e8e8ea;
+      --muted: #a0a3a8;
+      --accent: #6ea8fe;
+      --card-bg: #151923;
+      --chip: #22283a;
+      --chip-fg: #cfd6ff;
+      --row-gap: 12px;
+      --card-w: 150px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(1200px 800px at 50% -10%, #1a2130 0%, var(--bg) 60%);
+      color: var(--fg);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      display: grid;
+      place-items: start center;
+      padding: 32px 16px 48px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      text-align: center;
+    }
+    .sub {
+      margin: 0 0 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    button {
+      background: linear-gradient(180deg, #2a334a, #1f2636);
+      color: white;
+      border: 1px solid #3b4762;
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: transform .06s ease, box-shadow .12s ease, background .2s ease;
+      box-shadow: 0 6px 18px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.05);
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    .wrap {
+      width: min(1200px, 95vw);
+      margin-inline: auto;
+    }
+    .rows {
+      display: grid;
+      gap: var(--row-gap);
+    }
+    .row {
+      background: linear-gradient(180deg, #0f1320, #0b0e18);
+      border: 1px solid #232a40;
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    .row-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .chip {
+      background: var(--chip);
+      color: var(--chip-fg);
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #39405b;
+      letter-spacing: .2px;
+      white-space: nowrap;
+    }
+    .topbar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 6px;
+    }
+    .topbar h1 {
+    margin: 0;
+    text-align: center;
+    }
+    .linkbtn {
+    display: inline-block;
+    text-decoration: none;
+    background: linear-gradient(180deg, #2a334a, #1f2636);
+    color: #fff;
+    border: 1px solid #3b4762;
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 650;
+    letter-spacing: 0.2px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.05);
+    transition: transform .06s ease, box-shadow .12s ease, background .2s ease;
+    }
+    .linkbtn:hover { transform: translateY(-1px); }
+    .linkbtn:active { transform: translateY(0); }
+    .topbar .spacer { width: 130px; }
+    .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, var(--card-w));
+    gap: 12px;
+    justify-content: center;
+    }
+    .card {
+    width: var(--card-w);
+    aspect-ratio: 3 / 4;
+    background: var(--card-bg);
+    border: 1px solid #26314b;
+    border-radius: 12px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    position: relative;
+    }
+    .card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    }
+    .badge {
+      position: absolute;
+      top: 8px; left: 8px;
+      background: rgba(0,0,0,.55);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.15);
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+    .footer-note {
+      margin-top: 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="topbar">
+    <a class="linkbtn" href="index.html" aria-label="Return to Deck Viewer">Return to Deck Viewer</a>
+    <h1>Vibes Pack Simulator</h1>
+    <div class="spacer" aria-hidden="true"></div>
+    </div>
+    <p id="prompt" class="sub">Click a button to open a pack!</p>
+
+    <div class="controls">
+      <button id="btn-eth" aria-label="Open Enter the Huddle pack">Enter the Huddle</button>
+      <button id="btn-lotl" aria-label="Open Legend of the Lils pack">Legend of the Lils</button>
+    </div>
+
+    <section class="rows" id="rows">
+    </section>
+
+    <p class="footer-note">Does not account for Arctic Foils in Legend of the Lils packs, or Sketch foils in either pack. For entertainment purposes only!</p>
+  </main>
+
+  <script>
+    const PACK_FILES = {
+      eth: 'ethpack.json',
+      lotl: 'lotlpack.json',
+    };
+    const IMG_BASE = 'vibes_card_images/';
+
+    const RARE_OR_MYTHIC = [
+      ['rare',   0.875],
+      ['mythic', 0.125],
+    ];
+
+    const HOLO_ODDS = [
+      ['common',   0.645],
+      ['uncommon', 0.265],
+      ['rare',     0.08],
+      ['mythic',   0.01],
+    ];
+
+    function pickWeighted(pairs) {
+      const r = Math.random();
+      let acc = 0;
+      for (const [val, w] of pairs) {
+        acc += w;
+        if (r < acc) return val;
+      }
+      return pairs[pairs.length - 1][0];
+    }
+
+    function pickRandom(arr) {
+      if (!arr || !arr.length) return null;
+      const i = Math.floor(Math.random() * arr.length);
+      return arr[i];
+    }
+
+    function makeImgSrc(id) {
+      return `${IMG_BASE}${id}.png`;
+    }
+
+    function createRow(title, items) {
+      const row = document.createElement('div');
+      row.className = 'row';
+
+      const head = document.createElement('div');
+      head.className = 'row-head';
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.textContent = title;
+      head.appendChild(chip);
+
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+
+      for (const it of items) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const img = document.createElement('img');
+        img.alt = it.id;
+        img.loading = 'lazy';
+        img.src = makeImgSrc(it.id);
+        img.onerror = () => {
+          img.remove();
+          const ph = document.createElement('div');
+          ph.style.display = 'grid';
+          ph.style.placeItems = 'center';
+          ph.style.width = '100%';
+          ph.style.height = '100%';
+          ph.textContent = it.id;
+          ph.style.fontSize = '12px';
+          ph.style.color = '#cbd3ff';
+          card.appendChild(ph);
+        };
+
+        if (it.label) {
+          const badge = document.createElement('div');
+          badge.className = 'badge';
+          badge.textContent = it.label;
+          card.appendChild(badge);
+        }
+        card.appendChild(img);
+        grid.appendChild(card);
+      }
+
+      row.appendChild(head);
+      row.appendChild(grid);
+      return row;
+    }
+
+    async function loadPack(setKey) {
+      const file = PACK_FILES[setKey];
+      const res = await fetch(file);
+      if (!res.ok) throw new Error(`Failed to load ${file}: ${res.status}`);
+      const json = await res.json();
+      return json.cards || {};
+    }
+
+    function openPackFromPool(pool) {
+      const commons = [];
+      const uncommons = [];
+      const bottomRow = [];
+
+      for (let i = 0; i < 7; i++) {
+        commons.push({ id: pickRandom(pool.common), rarity: 'common' });
+      }
+
+      for (let i = 0; i < 3; i++) {
+        uncommons.push({ id: pickRandom(pool.uncommon), rarity: 'uncommon' });
+      }
+
+      const rmRarity = pickWeighted(RARE_OR_MYTHIC);
+      bottomRow.push({
+        id: pickRandom(pool[rmRarity]),
+        rarity: rmRarity,
+        label: rmRarity.toUpperCase()
+      });
+
+      const holoRarity = pickWeighted(HOLO_ODDS);
+      bottomRow.push({
+        id: pickRandom(pool[holoRarity]),
+        rarity: holoRarity,
+        label: `HOLO • ${holoRarity.toUpperCase()}`
+      });
+
+      return { commons, uncommons, bottomRow };
+    }
+
+    function renderPack({ commons, uncommons, bottomRow }) {
+      const rowsEl = document.getElementById('rows');
+      rowsEl.innerHTML = '';
+
+      rowsEl.appendChild(createRow('Commons (7)', commons));
+      rowsEl.appendChild(createRow('Uncommons (3)', uncommons));
+      rowsEl.appendChild(createRow('Rare/Mythic + Holo (2)', bottomRow));
+    }
+
+    async function handleOpen(setKey) {
+      try {
+        const cards = await loadPack(setKey);
+        const pack = openPackFromPool(cards);
+        renderPack(pack);
+
+        const prompt = document.getElementById('prompt');
+        prompt.textContent = 'Click a button to open another pack!';
+      } catch (err) {
+        console.error(err);
+        alert(err.message || 'Failed to open pack.');
+      }
+    }
+
+    document.getElementById('btn-eth').addEventListener('click', () => handleOpen('eth'));
+    document.getElementById('btn-lotl').addEventListener('click', () => handleOpen('lotl'));
+  </script>
+</body>
+</html>
