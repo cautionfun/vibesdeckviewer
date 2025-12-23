@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibes Deck Builder</title>
+    <style>
+        :root {
+            --bg-main: #050711;
+            --bg-panel: #101320;
+            --bg-deck: #090b15;
+            --accent: #7b5cff;
+            --accent-soft: rgba(123, 92, 255, 0.15);
+            --text-main: #f5f5ff;
+            --text-muted: #a0a4c0;
+            --border-subtle: #22263a;
+            --danger: #ff4b6a;
+            --success: #2ecc71;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #151a35 0, #050711 55%);
+            color: var(--text-main);
+        }
+
+        nav {
+            text-align: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #14182a;
+            background: #050814;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav a {
+            text-decoration: none;
+            font-size: 15px;
+            margin: 0 10px;
+            color: var(--text-muted);
+        }
+
+        nav a:hover {
+            color: var(--accent);
+        }
+
+        h1 {
+            text-align: left;
+            margin: 0 0 16px;
+            font-size: 24px;
+        }
+
+        main.page {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .search-section {
+            flex: 3;
+            background: var(--bg-panel);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+            position: relative;
+            min-height: 80vh;
+        }
+
+        .search-inputs {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            background: #080b19;
+            color: var(--text-main);
+            font-size: 14px;
+        }
+
+        input[type="text"]::placeholder,
+        textarea::placeholder {
+            color: #626781;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 1px var(--accent-soft);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            margin: 8px 0 12px;
+        }
+
+        .filter-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-group select {
+            cursor: pointer;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .card-result {
+            background: #111428;
+            border-radius: 10px;
+            padding: 8px 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            transition: transform 0.09s ease-out, box-shadow 0.09s ease-out, border-color 0.09s ease-out, background 0.09s ease-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .card-result:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
+            border-color: var(--accent-soft);
+            background: radial-gradient(circle at top, #1c2040 0, #111428 55%);
+        }
+
+        .card-thumb {
+            width: 100%;
+            max-width: 140px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        .card-name {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .card-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .results-header {
+            font-size: 12px;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .deck-section {
+            flex: 2;
+            background: var(--bg-deck);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 32px);
+        }
+
+        .deck-section h2 {
+            margin: 0 0 10px;
+            font-size: 20px;
+        }
+
+        .deck-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+            max-height: 160px;
+        }
+
+        .deck-count-banner {
+            background: #1b1020;
+            border-radius: 8px;
+            padding: 8px 10px;
+            margin: 6px 0 10px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .deck-count-main {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .deck-count-main span {
+            font-weight: 700;
+        }
+
+        .deck-count-status {
+            font-size: 11px;
+            margin-top: 3px;
+        }
+
+        .deck-count-status.ok {
+            color: var(--success);
+        }
+
+        .deck-count-status.not-ok {
+            color: var(--danger);
+        }
+
+        .deck-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex: 1;
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid #15192c;
+            background: #050713;
+        }
+
+        .deck-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            padding: 6px 8px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+        }
+
+        .deck-row:last-child {
+            border-bottom: none;
+        }
+
+        .deck-row-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .deck-card-name {
+            font-weight: 500;
+        }
+
+        .copy-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .copy-controls button {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            padding: 0;
+            background: #191f37;
+            color: var(--text-main);
+        }
+
+        .copy-controls button:hover {
+            background: #262f50;
+        }
+
+        .copy-count {
+            min-width: 18px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .card-color-pill {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            background: rgba(0, 0, 0, 0.15);
+            color: #e6e2ff;
+        }
+
+        .deck-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .deck-actions button {
+            border-radius: 8px;
+            border: none;
+            padding: 9px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.12s ease-out, transform 0.06s ease-out, box-shadow 0.12s ease-out;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #7b5cff, #f05fff);
+            color: white;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.55);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.66);
+        }
+
+        .btn-secondary {
+            background: #171b2b;
+            color: var(--text-main);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .btn-secondary:hover {
+            background: #1f2436;
+        }
+
+        #cardPreview {
+            position: absolute;
+            pointer-events: none;
+            max-width: 260px;
+            max-height: 380px;
+            display: none;
+            border: 2px solid #3a3f63;
+            background: #050713;
+            z-index: 200;
+            border-radius: 10px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .helper-text {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        @media (max-width: 1000px) {
+            main.page {
+                flex-direction: column;
+            }
+
+            .deck-section {
+                max-height: none;
+            }
+        }
+    </style>
+
+</head>
+<body>
+    <nav>
+        <a href="index.html">Deck Viewer</a> |
+        <a href="deckbuilder.html">Deck Builder</a> |
+        <a href="openpacks.html">Pack Simulator</a>
+    </nav>
+
+    <main class="page">
+        <section class="search-section">
+            <h1>Vibes Card Search + Deck Builder</h1>
+
+            <div class="search-inputs">
+                <div>
+                    <label for="searchName">Search card name:</label>
+                    <input type="text" id="searchName" placeholder="Enter card name..." oninput="searchCards()">
+                </div>
+                <div>
+                    <label for="searchText">Search card text:</label>
+                    <input type="text" id="searchText" placeholder="Search in rules text..." oninput="searchCards()">
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="filterType">Card type</label>
+                    <select id="filterType" onchange="searchCards()">
+                        <option value="All">All Types</option>
+                        <option value="Penguin">Penguin</option>
+                        <option value="Action">Action</option>
+                        <option value="Relic">Relic</option>
+                        <option value="Rod">Rod</option>
+                        <option value="???">???</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filterColor">Card color</label>
+                    <select id="filterColor" onchange="searchCards()">
+                        <option value="All">All Colors</option>
+                        <option value="Red">Red</option>
+                        <option value="Blue">Blue</option>
+                        <option value="Yellow">Yellow</option>
+                        <option value="Green">Green</option>
+                        <option value="Purple">Purple</option>
+                        <option value="Colorless">Colorless</option>
+                    </select>
+                </div>
+            </div>
+
+            <p class="helper-text">Tip: click a card to add it to your deck. Filters work even if you leave both search boxes empty.</p>
+
+            <div class="results-header" id="resultsHeader">Showing 0 cards</div>
+            <div id="results" class="card-grid"></div>
+        </section>
+
+        <section class="deck-section">
+            <h2>Deck Builder</h2>
+
+            <div class="deck-inputs">
+                <div>
+                    <label for="deckNameInput">Deck name</label>
+                    <input type="text" id="deckNameInput" placeholder="Enter deck name...">
+                </div>
+                <div>
+                    <label for="deckDescriptionInput">Deck description (optional)</label>
+                    <textarea id="deckDescriptionInput" placeholder="Short description, notes, or archetype..."></textarea>
+                </div>
+            </div>
+
+            <div class="deck-count-banner">
+                <div class="deck-count-main">
+                    <span id="deckCountDisplay">0</span>/52 cards
+                </div>
+                <div id="deckCountStatus" class="deck-count-status not-ok">
+                    Deck must have exactly 52 cards (currently 0).
+                </div>
+            </div>
+
+            <ul id="deckList" class="deck-list"></ul>
+
+            <div class="deck-actions">
+                <button id="exportDeckBtn" class="btn-primary">Export deck code</button>
+                <button id="viewDeckBtn" class="btn-secondary">View in Deck Viewer</button>
+            </div>
+        </section>
+    </main>
+
+    <img id="cardPreview" src="" alt="Card Preview">
+
+    <script>
+        let cards = [];
+
+        const cardIndex = {};
+        
+        const cardIndexById = {};
+
+        const deckState = {
+            counts: {}
+        };
+
+        let cardsReadyResolve;
+        const cardsReady = new Promise(resolve => {
+            cardsReadyResolve = resolve;
+        });
+
+        const colorBackgrounds = {
+            "Red": "rgba(255, 76, 76, 0.18)",
+            "Blue": "rgba(88, 153, 255, 0.18)",
+            "Yellow": "rgba(255, 222, 89, 0.18)",
+            "Green": "rgba(87, 201, 120, 0.18)",
+            "Purple": "rgba(180, 120, 255, 0.18)",
+            "Colorless": "rgba(255, 255, 255, 0.08)"
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('vibes_cards.json')
+                .then(response => response.json())
+                .then(data => {
+                    cards = data;
+                    cards.forEach(card => {
+                        cardIndex[card.name] = card;
+                        cardIndexById[card.id] = card;
+                    });
+                    searchCards();
+                    if (cardsReadyResolve) cardsReadyResolve();
+                })
+                .catch(error => console.error('Error loading JSON:', error));
+
+            document.getElementById('exportDeckBtn').addEventListener('click', exportDeckCode);
+            document.getElementById('viewDeckBtn').addEventListener('click', openInDeckViewer);
+        });
+
+        function cardHasColor(card, selectedColor) {
+            if (selectedColor === 'All') return true;
+            if (!card.color) return false;
+
+            const colors = card.color.split(',').map(c => c.trim());
+            return colors.includes(selectedColor);
+        }
+
+        function getEffectiveCost(card) {
+            if (card.cost && typeof card.cost.amount === 'number') {
+                return card.cost.amount;
+            }
+
+            if (
+                card.type === 'Action' &&
+                card.pudge &&
+                typeof card.pudge.amount === 'number' &&
+                typeof card.color === 'string'
+            ) {
+                const colors = card.color.split(',').map(c => c.trim()).filter(Boolean);
+                if (colors.length > 0) {
+                    return card.pudge.amount * colors.length;
+                }
+            }
+
+            return 0;
+        }
+
+        function searchCards() {
+            const queryText = document.getElementById('searchText').value.trim().toLowerCase();
+            const queryName = document.getElementById('searchName').value.trim().toLowerCase();
+            const selectedType = document.getElementById('filterType').value;
+            const selectedColor = document.getElementById('filterColor').value;
+
+            const hasSearch = queryText.length > 0 || queryName.length > 0;
+
+            const filteredCards = cards.filter(card => {
+                // Hide cards with no art like fishsicles and basic rods
+                if (!card.artUrl || card.artUrl === "") {
+                    return false;
+                }
+
+                const textMatch = queryText &&
+                    card.cardText &&
+                    card.cardText.toLowerCase().includes(queryText);
+
+                const nameMatch = queryName &&
+                    card.name.toLowerCase().includes(queryName);
+
+                const searchMatches = !hasSearch || textMatch || nameMatch;
+
+                const typeMatches = (selectedType === 'All') || (card.type === selectedType);
+                const colorMatches = cardHasColor(card, selectedColor);
+
+                return searchMatches && typeMatches && colorMatches;
+            });
+
+            renderCardResults(filteredCards);
+        }
+
+        function renderCardResults(cardArray) {
+            const resultsContainer = document.getElementById('results');
+            const header = document.getElementById('resultsHeader');
+            resultsContainer.innerHTML = '';
+
+            const sorted = [...cardArray].sort((a, b) => {
+                const costA = getEffectiveCost(a);
+                const costB = getEffectiveCost(b);
+
+                if (costA !== costB) {
+                    return costA - costB;
+                }
+                return a.name.localeCompare(b.name);
+            });
+
+            header.textContent = `Showing ${sorted.length} cards`;
+
+            sorted.forEach(card => {
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card-result';
+
+                const img = document.createElement('img');
+                img.className = 'card-thumb';
+                img.src = `vibes_card_images/${card.id}.png`;
+                img.alt = card.name;
+
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'card-name';
+                nameDiv.textContent = card.name;
+
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'card-meta';
+                metaDiv.textContent = `${card.color} • ${card.type}`;
+
+                cardDiv.appendChild(img);
+                cardDiv.appendChild(nameDiv);
+                cardDiv.appendChild(metaDiv);
+
+                cardDiv.addEventListener('mouseover', () => {
+                    showCardImage(card.id, cardDiv);
+                });
+                cardDiv.addEventListener('mouseout', () => {
+                    hideCardImage();
+                });
+
+                cardDiv.addEventListener('click', () => {
+                    addCardToDeck(card);
+                });
+
+                resultsContainer.appendChild(cardDiv);
+            });
+        }
+
+        function addCardToDeck(card) {
+            const name = card.name;
+
+            const currentTotal = getDeckTotal();
+            if (currentTotal >= 52) {
+                return;
+            }
+
+            const current = deckState.counts[name] || 0;
+            if (current >= 4) {
+                return;
+            }
+
+            deckState.counts[name] = current + 1;
+            updateDeckDisplay();
+        }
+
+        function changeCardCount(cardName, delta) {
+            const current = deckState.counts[cardName] || 0;
+            let next = current + delta;
+
+            if (next < 0) next = 0;
+            if (next > 4) next = 4;
+
+            const totalWithoutThis = getDeckTotal() - current;
+            if (totalWithoutThis + next > 52) {
+                next = Math.max(0, 52 - totalWithoutThis);
+            }
+
+            deckState.counts[cardName] = next;
+            updateDeckDisplay();
+        }
+
+        function getDeckTotal() {
+            return Object.values(deckState.counts).reduce((sum, c) => sum + (c || 0), 0);
+        }
+
+        function updateDeckDisplay() {
+            const deckList = document.getElementById('deckList');
+            const deckCountDisplay = document.getElementById('deckCountDisplay');
+            const deckCountStatus = document.getElementById('deckCountStatus');
+
+            deckList.innerHTML = '';
+
+            const entries = Object.entries(deckState.counts)
+                .filter(([_, count]) => count > 0)
+                .sort((a, b) => a[0].localeCompare(b[0]));
+
+            const total = getDeckTotal();
+            deckCountDisplay.textContent = total.toString();
+
+            if (total === 52) {
+                deckCountStatus.textContent = `Deck has exactly 52 cards.`;
+                deckCountStatus.classList.remove('not-ok');
+                deckCountStatus.classList.add('ok');
+            } else {
+                deckCountStatus.textContent = `Deck must have exactly 52 cards (currently ${total}).`;
+                deckCountStatus.classList.remove('ok');
+                deckCountStatus.classList.add('not-ok');
+            }
+
+            entries.forEach(([cardName, count]) => {
+                const card = cardIndex[cardName];
+
+                const li = document.createElement('li');
+                li.className = 'deck-row';
+
+                if (card && colorBackgrounds[card.color]) {
+                    li.style.backgroundColor = colorBackgrounds[card.color];
+                }
+
+                const left = document.createElement('div');
+                left.className = 'deck-row-left';
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'deck-card-name';
+                nameSpan.textContent = cardName;
+
+                left.appendChild(nameSpan);
+
+                if (card) {
+                    const colorPill = document.createElement('span');
+                    colorPill.className = 'card-color-pill';
+                    colorPill.textContent = card.color;
+                    left.appendChild(colorPill);
+                }
+
+                const controls = document.createElement('div');
+                controls.className = 'copy-controls';
+
+                const minusBtn = document.createElement('button');
+                minusBtn.type = 'button';
+                minusBtn.textContent = '−';
+                minusBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    changeCardCount(cardName, -1);
+                });
+
+                const countSpan = document.createElement('span');
+                countSpan.className = 'copy-count';
+                countSpan.textContent = count.toString();
+
+                const plusBtn = document.createElement('button');
+                plusBtn.type = 'button';
+                plusBtn.textContent = '+';
+                plusBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    changeCardCount(cardName, +1);
+                });
+
+                controls.appendChild(minusBtn);
+                controls.appendChild(countSpan);
+                controls.appendChild(plusBtn);
+
+                li.appendChild(left);
+                li.appendChild(controls);
+
+                deckList.appendChild(li);
+            });
+        }
+
+        function sanitizeCardNameForCode(name) {
+            return name.replace(/[^A-Za-z0-9]/g, '');
+        }
+
+        function buildDeckJSON() {
+            const deckNameInput = document.getElementById('deckNameInput').value.trim();
+            const deckName = deckNameInput || "Untitled";
+
+            const counts = {};
+            for (const [displayName, count] of Object.entries(deckState.counts)) {
+                if (count > 0) {
+                    const card = cardIndex[displayName];
+
+                    if (card && card.id) {
+                        counts[card.id] = count;
+                    } else {
+                        const deckKey = sanitizeCardNameForCode(displayName);
+                        counts[deckKey] = count;
+                    }
+                }
+            }
+
+            const payload = {
+                deckName: deckName,
+                counts: counts
+            };
+
+            return JSON.stringify(payload);
+        }
+
+        function exportDeckCode() {
+            const deckJSON = buildDeckJSON();
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(deckJSON).then(() => {
+                    alert("Deck code copied to clipboard!");
+                }).catch(() => {
+                    fallbackCopyText(deckJSON);
+                });
+            } else {
+                fallbackCopyText(deckJSON);
+            }
+        }
+
+        function fallbackCopyText(text) {
+            const temp = document.createElement('textarea');
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            try {
+                document.execCommand('copy');
+                alert("Deck code copied to clipboard!");
+            } catch (e) {
+                alert("Unable to copy deck code automatically. Here it is:\n" + text);
+            }
+            document.body.removeChild(temp);
+        }
+
+        function openInDeckViewer() {
+            const deckJSON = buildDeckJSON();
+            const baseUrl = "https://cautionfun.github.io/vibesdeckviewer/index.html?deck=";
+            const url = baseUrl + encodeURIComponent(deckJSON);
+            window.open(url, "_blank");
+        }
+
+        function loadDeckFromObject(deckObj) {
+            if (!deckObj || typeof deckObj !== 'object') return;
+
+            const deckNameInputEl = document.getElementById('deckNameInput');
+            if (deckNameInputEl) {
+                deckNameInputEl.value = deckObj.deckName || 'Untitled';
+            }
+
+            deckState.counts = {};
+
+            const counts = deckObj.counts || {};
+            for (const [cardId, rawCount] of Object.entries(counts)) {
+                const card = cardIndexById[cardId];
+                if (!card) continue; // ignore unknown card.ids
+
+                let n = parseInt(rawCount, 10);
+                if (!Number.isFinite(n) || n <= 0) continue;
+
+                n = Math.min(4, n);
+                deckState.counts[card.name] = n;
+            }
+
+            updateDeckDisplay();
+        }
+
+        function showCardImage(cardId, elem) {
+            const img = document.getElementById('cardPreview');
+            img.style.display = 'block';
+            img.src = `vibes_card_images/${cardId}.png`;
+
+            img.onload = () => {
+                positionCardImage(img, elem);
+            };
+        }
+
+        function positionCardImage(img, elem) {
+            const rect = elem.getBoundingClientRect();
+            const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            const offsetX = 20;
+            const imageHeight = img.offsetHeight || 380;
+
+            let top = rect.top + scrollTop;
+            let left = rect.right + scrollLeft + offsetX;
+
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+            if (top + imageHeight > scrollTop + viewportHeight) {
+                top = scrollTop + viewportHeight - imageHeight - 10;
+            }
+
+            img.style.top = top + 'px';
+            img.style.left = left + 'px';
+        }
+
+        function hideCardImage() {
+            const img = document.getElementById('cardPreview');
+            img.style.display = 'none';
+            img.src = '';
+        }
+
+        (async () => {
+            const params = new URLSearchParams(window.location.search);
+            if (!params.has('deck')) return;
+
+            const raw = params.get('deck') || '';
+            const deckJsonStr = decodeURIComponent(raw);
+
+            let deckObj;
+            try {
+                deckObj = JSON.parse(deckJsonStr);
+            } catch (e) {
+                console.error('Failed to parse deck JSON from URL:', e);
+                return;
+            }
+
+            await cardsReady;
+
+            loadDeckFromObject(deckObj);
+        })();
+        // Add a comment here to increase the total lines of code to 900, which is a nice round number.
+
+    </script>
+</body>
+</html>
