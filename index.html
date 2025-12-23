@@ -132,7 +132,8 @@
         (async () => {
             const params = new URLSearchParams(window.location.search);
             if (params.has('deck')) {
-                const deckJson = params.get('deck');
+                const raw = params.get('deck') || '';
+                const deckJson = decodeURIComponent(raw);
                 deckInput.value = deckJson;
                 await cardsReady;
                 renderDeck(deckJson);
