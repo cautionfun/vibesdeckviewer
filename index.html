@@ -230,6 +230,25 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 4px;
+            gap: 8px;
+        }
+
+        .deck-breakdown-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .deck-breakdown-controls label {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .deck-breakdown-controls input[type="checkbox"] {
+            margin: 0;
         }
 
         .chart-wrapper {
@@ -346,7 +365,14 @@
         <section class="charts-section">
             <div class="deck-breakdown-header">
                 <h2>Deck Breakdown</h2>
-                <button class="btn-secondary btn-small" onclick="openInDeckBuilder()">Open in Deck Builder</button>
+                <div class="deck-breakdown-controls">
+                    <label>
+                        <input type="checkbox" id="inkSaver">
+                        Ink Saver
+                    </label>
+                    <button class="btn-secondary btn-small" onclick="openPrintView()">Print Deck</button>
+                    <button class="btn-secondary btn-small" onclick="openInDeckBuilder()">Open in Deck Builder</button>
+                </div>
             </div>
 
             <div class="chart-wrapper">
@@ -651,6 +677,128 @@
             window.open(url, '_blank');
         }
 
+        function openPrintView() {
+            if (!lastDeckJSON) {
+                alert('No deck loaded yet. Paste a deck code and click Submit first.');
+                return;
+            }
+
+            let deckData;
+            try {
+                deckData = JSON.parse(lastDeckJSON);
+            } catch (e) {
+                console.error('Invalid deck JSON stored:', e);
+                alert('Something went wrong with the current deck data.');
+                return;
+            }
+
+            const counts = deckData.counts || {};
+            const cardCopies = [];
+            for (const [cardId, qty] of Object.entries(counts)) {
+                const count = Number(qty) || 0;
+                for (let i = 0; i < count; i++) {
+                    cardCopies.push(cardId);
+                }
+            }
+
+            if (cardCopies.length === 0) {
+                alert('This deck has no cards to print.');
+                return;
+            }
+
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                alert('Popup blocked. Please allow popups for this site to use Print Deck.');
+                return;
+            }
+
+            const inkSaverEnabled = document.getElementById('inkSaver')?.checked;
+            const inkSaverFilter = inkSaverEnabled
+                ? 'filter: brightness(1.3) contrast(0.7) opacity(0.9);'
+                : '';
+
+            const styles = `
+                body {
+                    margin: 0;
+                    padding: 4px;
+                    background: #ffffff;
+                }
+                .page {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    grid-template-rows: repeat(4, auto);
+                    column-gap: 1px;
+                    row-gap: 0;
+                    page-break-after: always;
+                }
+                .card-slot {
+                    position: relative;
+                    width: 100%;
+                    /* Approximate trading-card aspect ratio using padding-top trick */
+                    padding-top: 130%;
+                    overflow: hidden;
+                }
+                .card-slot img {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    ${inkSaverFilter}
+                }
+                @page {
+                    margin: 4mm;
+                }
+                @media print {
+                    body {
+                        margin: 0;
+                        padding: 0;
+                    }
+                }
+            `;
+
+            let html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Print Deck</title>
+                    <style>${styles}</style>
+                </head>
+                <body>
+            `;
+
+            const pageSize = 16;
+            for (let i = 0; i < cardCopies.length; i += pageSize) {
+                html += `<div class="page">`;
+                const slice = cardCopies.slice(i, i + pageSize);
+                for (const cardId of slice) {
+                    html += `
+                        <div class="card-slot">
+                            <img src="vibes_card_images/${cardId}.png" alt="${cardId}">
+                        </div>
+                    `;
+                }
+                html += `</div>`;
+            }
+
+            html += `
+                    <script>
+                        window.onload = function() {
+                            window.focus();
+                            window.print();
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `;
+
+            printWindow.document.open();
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
         (async () => {
             const params = new URLSearchParams(window.location.search);
             if (params.has('deck')) {
@@ -661,9 +809,6 @@
                 renderDeck(deckJson);
             }
         })();
-        // Add comments here
-        // and here so the number of lines of code ends in 69, which is a fun and good number.
-
     </script>
 </body>
 </html>
